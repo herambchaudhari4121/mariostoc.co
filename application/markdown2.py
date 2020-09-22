@@ -70,13 +70,13 @@ class MarkdownError(Exception):
 def markdown(text, tab_width=DEFAULT_TAB_WIDTH,
              safe_mode=None, extras=None, link_patterns=None,
              footnote_title=None, footnote_return_symbol=None,
-             use_file_vars=False, cli=False):
+             use_file_vars=False):
     return Markdown(tab_width=tab_width,
                     safe_mode=safe_mode, extras=extras,
                     link_patterns=link_patterns,
                     footnote_title=footnote_title,
                     footnote_return_symbol=footnote_return_symbol,
-                    use_file_vars=use_file_vars, cli=cli).convert(text)
+                    use_file_vars=use_file_vars).convert(text)
 
 
 class Markdown(object):
@@ -106,7 +106,7 @@ class Markdown(object):
     def __init__(self, tab_width=4, safe_mode=None,
                  extras=None, link_patterns=None,
                  footnote_title=None, footnote_return_symbol=None,
-                 use_file_vars=False, cli=False):
+                 use_file_vars=False):
         self.empty_element_suffix = " />"
         self.tab_width = tab_width
         self.tab = tab_width * " "
@@ -145,7 +145,7 @@ class Markdown(object):
         self.footnote_return_symbol = footnote_return_symbol
         self.use_file_vars = use_file_vars
         self._outdent_re = re.compile(r'^(\t|[ ]{1,%d})' % tab_width, re.M)
-        self.cli = cli
+
 
         self._escape_table = g_escape_table.copy()
         if "smarty-pants" in self.extras:
@@ -289,10 +289,6 @@ class Markdown(object):
 
         if "toc" in self.extras and self._toc:
             self._toc_html = calculate_toc_html(self._toc)
-
-            # Prepend toc html to output
-            if self.cli:
-                text = '{}\n{}'.format(self._toc_html, text)
 
         text += "\n"
 
