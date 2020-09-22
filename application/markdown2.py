@@ -67,11 +67,9 @@ class MarkdownError(Exception):
 
 # ---- public api
 
-def markdown(text, tab_width=DEFAULT_TAB_WIDTH,
-             safe_mode=None, extras=None, link_patterns=None,
+def markdown(text, safe_mode=None, extras=None, link_patterns=None,
              footnote_title=None, footnote_return_symbol=None):
-    return Markdown(tab_width=tab_width,
-                    safe_mode=safe_mode, extras=extras,
+    return Markdown(safe_mode=safe_mode, extras=extras,
                     link_patterns=link_patterns,
                     footnote_title=footnote_title,
                     footnote_return_symbol=footnote_return_symbol).convert(text)
@@ -99,12 +97,12 @@ class Markdown(object):
 
     _ws_only_line_re = re.compile(r"^[ \t]+$", re.M)
 
-    def __init__(self, tab_width=4, safe_mode=None,
+    def __init__(self, safe_mode=None,
                  extras=None, link_patterns=None,
                  footnote_title=None, footnote_return_symbol=None):
         self.empty_element_suffix = " />"
-        self.tab_width = tab_width
-        self.tab = tab_width * " "
+        self.tab_width = 4
+        self.tab = 4 * " "
 
         # For compatibility with earlier markdown2.py and with
         # markdown.py's safe_mode being a boolean,
@@ -125,13 +123,12 @@ class Markdown(object):
             self.extras.update(extras)
         assert isinstance(self.extras, dict)
 
-        
         self._instance_extras = self.extras.copy()
 
         self.link_patterns = link_patterns
         self.footnote_title = footnote_title
         self.footnote_return_symbol = footnote_return_symbol
-        self._outdent_re = re.compile(r'^(\t|[ ]{1,%d})' % tab_width, re.M)
+        self._outdent_re = re.compile(r'^(\t|[ ]{1,%d})' % 4, re.M)
 
 
         self._escape_table = g_escape_table.copy()
