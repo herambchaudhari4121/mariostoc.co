@@ -3,29 +3,6 @@
 # Copyright (c) 2007-2008 ActiveState Corp.
 # License: MIT (http://www.opensource.org/licenses/mit-license.php)
 
-r"""A fast and complete Python implementation of Markdown.
-
-[from http://daringfireball.net/projects/markdown/]
-> Markdown is a text-to-HTML filter; it translates an easy-to-read /
-> easy-to-write structured text format into HTML.  Markdown's text
-> format is most similar to that of plain text email, and supports
-> features such as headers, *emphasis*, code blocks, blockquotes, and
-> links.
->
-> Markdown's syntax is designed not as a generic markup language, but
-> specifically to serve as a front-end to (X)HTML. You can use span-level
-> HTML tags anywhere in a Markdown document, and you can use block level
-> HTML tags (like <div> and <table> as well).
-
-
-"""
-
-cmdln_desc = """A fast and complete Python implementation of Markdown, a
-text-to-HTML conversion tool for web writers.
-
-
-"""
-
 # Dev Notes:
 # - Python's regex syntax doesn't have '\z', so I'm using '\Z'. I'm
 #   not yet sure if there implications with this. Compare 'pydoc sre'
@@ -89,22 +66,6 @@ class MarkdownError(Exception):
 
 
 # ---- public api
-
-def markdown_path(path, encoding="utf-8",
-                  tab_width=DEFAULT_TAB_WIDTH,
-                  safe_mode=None, extras=None, link_patterns=None,
-                  footnote_title=None, footnote_return_symbol=None,
-                  use_file_vars=False):
-    fp = codecs.open(path, 'r', encoding)
-    text = fp.read()
-    fp.close()
-    return Markdown(tab_width=tab_width,
-                    safe_mode=safe_mode, extras=extras,
-                    link_patterns=link_patterns,
-                    footnote_title=footnote_title,
-                    footnote_return_symbol=footnote_return_symbol,
-                    use_file_vars=use_file_vars).convert(text)
-
 
 def markdown(text, tab_width=DEFAULT_TAB_WIDTH,
              safe_mode=None, extras=None, link_patterns=None,
