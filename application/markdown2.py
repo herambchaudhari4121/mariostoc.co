@@ -69,14 +69,12 @@ class MarkdownError(Exception):
 
 def markdown(text, tab_width=DEFAULT_TAB_WIDTH,
              safe_mode=None, extras=None, link_patterns=None,
-             footnote_title=None, footnote_return_symbol=None,
-             use_file_vars=False):
+             footnote_title=None, footnote_return_symbol=None):
     return Markdown(tab_width=tab_width,
                     safe_mode=safe_mode, extras=extras,
                     link_patterns=link_patterns,
                     footnote_title=footnote_title,
-                    footnote_return_symbol=footnote_return_symbol,
-                    use_file_vars=use_file_vars).convert(text)
+                    footnote_return_symbol=footnote_return_symbol).convert(text)
 
 
 class Markdown(object):
@@ -105,8 +103,7 @@ class Markdown(object):
 
     def __init__(self, tab_width=4, safe_mode=None,
                  extras=None, link_patterns=None,
-                 footnote_title=None, footnote_return_symbol=None,
-                 use_file_vars=False):
+                 footnote_title=None, footnote_return_symbol=None):
         self.empty_element_suffix = " />"
         self.tab_width = tab_width
         self.tab = tab_width * " "
@@ -143,7 +140,6 @@ class Markdown(object):
         self.link_patterns = link_patterns
         self.footnote_title = footnote_title
         self.footnote_return_symbol = footnote_return_symbol
-        self.use_file_vars = use_file_vars
         self._outdent_re = re.compile(r'^(\t|[ ]{1,%d})' % tab_width, re.M)
 
 
@@ -203,22 +199,6 @@ class Markdown(object):
         if not isinstance(text, unicode):
             # TODO: perhaps shouldn't presume UTF-8 for string input?
             text = unicode(text, 'utf-8')
-
-        if self.use_file_vars:
-            # Look for emacs-style file variable hints.
-            emacs_vars = self._get_emacs_vars(text)
-            if "markdown-extras" in emacs_vars:
-                splitter = re.compile("[ ,]+")
-                for e in splitter.split(emacs_vars["markdown-extras"]):
-                    if '=' in e:
-                        ename, earg = e.split('=', 1)
-                        try:
-                            earg = int(earg)
-                        except ValueError:
-                            pass
-                    else:
-                        ename, earg = e, None
-                    self.extras[ename] = earg
 
         # Standardize line endings:
         text = text.replace("\r\n", "\n")
