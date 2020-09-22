@@ -127,14 +127,7 @@ class Markdown(object):
             self.extras.update(extras)
         assert isinstance(self.extras, dict)
 
-        if "toc" in self.extras:
-            if "header-ids" not in self.extras:
-                self.extras["header-ids"] = None   # "toc" implies "header-ids"
-
-            if self.extras["toc"] is None:
-                self._toc_depth = 6
-            else:
-                self._toc_depth = self.extras["toc"].get("depth", 6)
+        
         self._instance_extras = self.extras.copy()
 
         self.link_patterns = link_patterns
@@ -267,17 +260,10 @@ class Markdown(object):
         if "target-blank-links" in self.extras:
             text = self._a_blank.sub(r'<\1 target="_blank"\2', text)
 
-        if "toc" in self.extras and self._toc:
-            self._toc_html = calculate_toc_html(self._toc)
-
         text += "\n"
 
         # Attach attrs to output
         rv = UnicodeWithAttrs(text)
-
-        if "toc" in self.extras and self._toc:
-            rv.toc_html = self._toc_html
-
         if "metadata" in self.extras:
             rv.metadata = self.metadata
         return rv
@@ -1409,13 +1395,6 @@ class Markdown(object):
 
         return header_id
 
-    def _toc_add_entry(self, level, id, name):
-        if level > self._toc_depth:
-            return
-        if self._toc is None:
-            self._toc = []
-        self._toc.append((level, id, self._unescape_special_chars(name)))
-
     _h_re_base = r'''
         (^(.+)[ \t]*\n(=+|-+)[ \t]*\n+)
         |
@@ -1454,8 +1433,6 @@ class Markdown(object):
             if header_id:
                 header_id_attr = ' id="%s"' % header_id
         html = self._run_span_gamut(header_group)
-        if "toc" in self.extras and header_id:
-            self._toc_add_entry(n, header_id, html)
         return "<h%d%s>%s</h%d>\n\n" % (n, header_id_attr, html, n)
 
     def _do_headers(self, text):
@@ -2169,41 +2146,6 @@ class MarkdownWithExtras(Markdown):
 
 
 # ---- internal support functions
-
-
-def calculate_toc_html(toc):
-    """Return the HTML for the current TOC.
-
-    This expects the `_toc` attribute to have been set on this instance.
-    """
-    if toc is None:
-        return None
-
-    def indent():
-        return '  ' * (len(h_stack) - 1)
-    lines = []
-    h_stack = [0]   # stack of header-level numbers
-    for level, id, name in toc:
-        if level > h_stack[-1]:
-            lines.append("%s<ul>" % indent())
-            h_stack.append(level)
-        elif level == h_stack[-1]:
-            lines[-1] += "</li>"
-        else:
-            while level < h_stack[-1]:
-                h_stack.pop()
-                if not lines[-1].endswith("</li>"):
-                    lines[-1] += "</li>"
-                lines.append("%s</ul></li>" % indent())
-        lines.append('%s<li><a href="#%s">%s</a>' % (
-            indent(), id, name))
-    while len(h_stack) > 1:
-        h_stack.pop()
-        if not lines[-1].endswith("</li>"):
-            lines[-1] += "</li>"
-        lines.append("%s</ul>" % indent())
-    return '\n'.join(lines) + '\n'
-
 
 class UnicodeWithAttrs(unicode):
     """A subclass of unicode used for the return value of conversion to
