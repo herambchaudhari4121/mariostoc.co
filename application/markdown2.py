@@ -135,13 +135,6 @@ class Markdown(object):
         self.html_spans = {}
         self.list_level = 0
         self.extras = self._instance_extras.copy()
-        if "footnotes" in self.extras:
-            self.footnotes = {}
-            self.footnote_ids = []
-        if "header-ids" in self.extras:
-            self._count_from_header_id = defaultdict(int)
-        if "metadata" in self.extras:
-            self.metadata = {}
 
     # Per <https://developer.mozilla.org/en-US/docs/HTML/Element/a> "rel"
     # should only be used in <a> tags with an "href" attribute.
@@ -195,17 +188,10 @@ class Markdown(object):
         # contorted like /[ \t]*\n+/ .
         text = self._ws_only_line_re.sub("", text)
 
-        # strip metadata from head and extract
-        if "metadata" in self.extras:
-            text = self._extract_metadata(text)
-
         text = self.preprocess(text)
 
         if "fenced-code-blocks" in self.extras and not self.safe_mode:
             text = self._do_fenced_code_blocks(text)
-
-        if self.safe_mode:
-            text = self._hash_html_spans(text)
 
         # Turn block-level HTML blocks into hash entries
         text = self._hash_html_blocks(text, raw=True)
@@ -219,20 +205,9 @@ class Markdown(object):
             text = self._do_numbering(text)
 
         # Strip link definitions, store in hashes.
-        if "footnotes" in self.extras:
-            # Must do footnotes first because an unlucky footnote defn
-            # looks like a link defn:
-            #   [^4]: this "looks like a link defn"
-            text = self._strip_footnote_definitions(text)
         text = self._strip_link_definitions(text)
-
         text = self._run_block_gamut(text)
-
-        if "footnotes" in self.extras:
-            text = self._add_footnotes(text)
-
         text = self.postprocess(text)
-
         text = self._unescape_special_chars(text)
 
         if self.safe_mode:
@@ -289,32 +264,6 @@ class Markdown(object):
         "(.*:\s+>\n\s+[\S\s]+?)(?=\n\w+\s*:\s*\w+\n|\Z)", re.MULTILINE)
     _meta_data_fence_pattern = re.compile(r'^---[\ \t]*\n', re.MULTILINE)
     _meta_data_newline = re.compile("^\n", re.MULTILINE)
-
-    def _extract_metadata(self, text):
-        if text.startswith("---"):
-            fence_splits = re.split(self._meta_data_fence_pattern, text, maxsplit=2)
-            metadata_content = fence_splits[1]
-            match = re.findall(self._meta_data_pattern, metadata_content)
-            if not match:
-                return text
-            tail = fence_splits[2]
-        else:
-            metadata_split = re.split(self._meta_data_newline, text, maxsplit=1)
-            metadata_content = metadata_split[0]
-            match = re.findall(self._meta_data_pattern, metadata_content)
-            if not match:
-                return text
-            tail = metadata_split[1]
-
-        kv = re.findall(self._key_val_pat, metadata_content)
-        kvm = re.findall(self._key_val_block_pat, metadata_content)
-        kvm = [item.replace(": >\n", ":", 1) for item in kvm]
-
-        for item in kv + kvm:
-            k, v = item.split(":", 1)
-            self.metadata[k.strip()] = v.strip()
-
-        return tail
 
     _emacs_oneliner_vars_pat = re.compile(r"-\*-\s*([^\r\n]*?)\s*-\*-", re.UNICODE)
     # This regular expression is intended to match blocks like this:
@@ -1217,11 +1166,6 @@ class Markdown(object):
                 curr_pos = start_idx + 1
                 continue
             link_text = text[start_idx+1:p]
-
-            # Fix for issue 341 - Injecting XSS into link text
-            if self.safe_mode:
-                link_text = self._hash_html_spans(link_text)
-                link_text = self._unhash_html_spans(link_text)
 
             # Possibly a footnote ref?
             if "footnotes" in self.extras and link_text.startswith("^"):
