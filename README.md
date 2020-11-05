@@ -43,6 +43,8 @@ Earlier in 2018, I helped a colleague migrate his website from WordPress to a st
 
 
 ### In the Future...
-Add automation specific to the tools/apps on my iPadPro.
+Add automation specific to the tools/apps on my iPadPro.Use Shortcuts to automate tasks on iPad
+The Shortcuts app n/a lets you automate tasks you do often with just a tap or by asking Siri. Create shortcuts to get directions to the next event in your Calendar, move text from one app to another, and more. Choose ready-made shortcuts from the Gallery or build your own using different apps to run multiple steps in a task.
+
 
 
